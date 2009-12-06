@@ -1,0 +1,4 @@
+Chargify API wrapper for PHP
+Christopher Lewis, 2009 (lewsid@lewsid.com)
+
+This is a basic PHP wrapper for the Chargify API.
