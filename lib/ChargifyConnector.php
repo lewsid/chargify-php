@@ -70,6 +70,31 @@ class ChargifyConnector
     return $xml;
   }
   
+  /*
+     Example post xml:     
+
+     <?xml version="1.0" encoding="UTF-8"?>
+      <subscription>
+        <product_handle>' . $product_id . '</product_handle>
+        <customer_attributes>
+          <first_name>first</first_name>
+          <last_name>last</last_name>
+          <email>email@email.com</email>
+        </customer_attributes>
+        <credit_card_attributes>
+          <first_name>first</first_name>
+          <last_name>last</last_name>
+          <billing_address>1 Infinite Loop</billing_address>
+          <billing_city>Somewhere</billing_city>
+          <billing_state>CA</billing_state>
+          <billing_zip>12345</billing_zip>
+          <billing_country>USA</billing_country>
+          <full_number>41111111111111111</full_number>
+          <expiration_month>11</expiration_month>
+          <expiration_year>2012</expiration_year>
+        </credit_card_attributes>
+      </subscription>
+  */
   public function createCustomerAndSubscription($post_xml)
   {
     exec('curl -u ' . $this->active_api_key . ':x -H Content-Type:application/xml https://' . $this->active_domain 
