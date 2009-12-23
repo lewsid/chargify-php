@@ -2,3 +2,18 @@ Chargify API wrapper for PHP
 Christopher Lewis, 2009 (lewsid@lewsid.com)
 
 This is a basic PHP wrapper for the Chargify API.
+
+Example Usage:
+
+1. Create an instance of the ChargifyConnector object, and whether you want to run it in test mode or not:
+
+  $test_mode = false;
+  $connector = new ChargifyConnector($test_mode);
+
+2. This class has many helpful functions that can be used to both pull information from Chargify:
+
+  $products = $connector->getAllProducts();
+
+3. You can also create a subscription:
+
+   $sub = $connector->createCustomerAndSubscription($post_xml);
