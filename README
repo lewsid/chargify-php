@@ -10,7 +10,7 @@ Example Usage:
   $test_mode = false;
   $connector = new ChargifyConnector($test_mode);
 
-2. This class has many helpful functions that can be used to information from Chargify:
+2. This class has many helpful functions that can be used to retrieve information from Chargify:
 
   $products = $connector->getAllProducts();
 
