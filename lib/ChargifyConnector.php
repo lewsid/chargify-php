@@ -2,7 +2,7 @@
 
 /******************************************************************************************
 
-  Christopher Lewis, 2009
+  Christopher Lewis, 2010
 
   Reference Documentation: http://support.chargify.com/faqs/api/api-authentication
 
@@ -10,14 +10,14 @@
 
 class ChargifyConnector
 {
-  private $api_key        = 'ENTER API KEY HERE';
-  private $test_api_key   = 'ENTER TEST API KEY HERE';
-  private $domain         = 'ENTER THE DOMAIN HERE';
-  private $test_domain    = 'ENTER THE TEST DOMAIN HERE';
+  protected $api_key        = 'ENTER API KEY HERE';
+  protected $test_api_key   = 'ENTER TEST API KEY HERE';
+  protected $domain         = 'ENTER THE DOMAIN HERE';
+  protected $test_domain    = 'ENTER THE TEST DOMAIN HERE';
   
-  private $active_api_key;
-  private $active_domain;
-  private $test_mode;
+  protected $active_api_key;
+  protected $active_domain;
+  protected $test_mode;
   
   public function __construct($test_mode = false)
   {
@@ -37,42 +37,32 @@ class ChargifyConnector
   
   public function retrieveAllCustomersXML($page_num = 1)
   {
-    exec('curl -u ' . $this->active_api_key . ':x https://' . $this->active_domain 
-      . '.chargify.com/customers.xml?page=' . $page_num, $output);
-    $xml = implode("\n", $output);
-    
-    return $xml;
+    return $this->sendRequest('/customers.xml?page=' . $page_num);
   }
   
   public function retrieveCustomerXMLByID($id)
   {
-    exec('curl -u ' . $this->active_api_key . ':x https://' . $this->active_domain . '.chargify.com/customers/' 
-      . $id . '.xml', $output);
-    $xml = implode("\n", $output);
-    
-    return $xml;
+    return $this->sendRequest('/customers/' . $id . '.xml');
+  }
+  
+  public function retrieveCustomerXMLByReference($ref)
+  {
+    return $this->sendRequest('/customers/lookup.xml?reference=' . $ref);
   }
   
   public function retrieveSubscriptionsXMLByCustomerID($id)
   {
-    exec('curl -u ' . $this->active_api_key . ':x https://' . $this->active_domain . '.chargify.com/customers/' 
-      . $id . '/subscriptions.xml', $output);
-    $xml = implode("\n", $output);
-    
-    return $xml;
+    return $this->sendRequest('/customers/' . $id . '/subscriptions.xml');
   }
   
   public function retrieveAllProductsXML()
   {
-    exec('curl -u ' . $this->active_api_key . ':x https://' . $this->active_domain . '.chargify.com/products.xml', $output);
-    $xml = implode("\n", $output);
-    
-    return $xml;
+    return $this->sendRequest('/products.xml');
   }
   
   /*
      Example post xml:     
-
+ 
      <?xml version="1.0" encoding="UTF-8"?>
       <subscription>
         <product_handle>' . $product_id . '</product_handle>
@@ -95,13 +85,13 @@ class ChargifyConnector
         </credit_card_attributes>
       </subscription>
   */
+  /**
+   * @return SimpleXMLElement|ChargifySubscription
+   */
   public function createCustomerAndSubscription($post_xml)
   {
-    exec('curl -u ' . $this->active_api_key . ':x -H Content-Type:application/xml https://' . $this->active_domain 
-      . '.chargify.com/subscriptions.xml --data-binary "' . $post_xml . '"', $output);
-    
-    $xml = implode("\n", $output);
-    
+    $xml = $this->sendRequest('/subscriptions.xml', $post_xml);
+
     $tree = new SimpleXMLElement($xml);
 
     if(isset($tree->error)) { return $tree; }
@@ -127,6 +117,9 @@ class ChargifyConnector
     return $customer_objects;
   }
   
+  /**
+   * @return ChargifyCustomer
+   */
   public function getCustomerByID($id)
   {
     $xml = $this->retrieveCustomerXMLByID($id);
@@ -135,6 +128,20 @@ class ChargifyConnector
     
     $customer = new ChargifyCustomer($customer_xml_node);
     
+    return $customer;
+  }
+  
+  /**
+   * @return ChargifyCustomer
+   */
+  public function getCustomerByReference($ref)
+  {
+    $xml = $this->retrieveCustomerXMLByReference($ref);
+
+    $customer_xml_node = new SimpleXMLElement($xml);
+    
+    $customer = new ChargifyCustomer($customer_xml_node);
+        
     return $customer;
   }
   
@@ -172,6 +179,36 @@ class ChargifyConnector
     
     return $product_objects;
   }
-}
+  
+  /**
+   * @return ChargifyCustomer
+   */
+  public function createCustomer($post_xml) {
+    $xml = $this->sendRequest('/customers.xml', $post_xml);
+    
+    $customer_xml_node = new SimpleXMLElement($xml);
+    
+    $customer = new ChargifyCustomer($customer_xml_node);
+    
+    return $customer;
+  }
 
-?>
+  protected function curlArguments($uri, $post_xml = null) {
+    $args[] = "-u {$this->active_api_key}:x";
+    $args[] = "-H Content-Type:application/xml";
+    $args[] = "https://{$this->active_domain}.chargify.com{$uri}";
+    
+    if ($post_xml) {
+      $args[] = "--data-binary \"$post_xml\"";
+    }
+    
+    return $args;
+  }
+  
+  protected function sendRequest($uri, $post_xml = null) {    
+    exec('curl ' . join(' ', $args), $output);
+    $xml = implode("\n", $output);
+    
+    return $xml;
+  }
+}
