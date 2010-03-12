@@ -15,7 +15,16 @@ class ChargifyProduct extends ChargifyConnector
   public function __construct(SimpleXMLElement $product_xml_node)
   {  
     //Load object dynamically and convert SimpleXMLElements into strings
-    foreach($product_xml_node as $key => $element) { $this->$key = (string)$element; }
+    foreach($product_xml_node as $key => $element) {
+      if (count($element)) {
+        foreach($element as $childname => $child) {
+          $this->{$key}[$childname] = (string)$child;
+        }
+      } 
+      else {
+        $this->$key = (string)$element;
+      }
+    }
   }
   
   
