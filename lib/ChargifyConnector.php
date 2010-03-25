@@ -206,7 +206,7 @@ class ChargifyConnector
   }
   
   protected function sendRequest($uri, $post_xml = null) {    
-    exec('curl ' . join(' ', $args), $output);
+    exec('curl ' . join(' ', $this->curlArguments($uri, $post_xml)), $output);
     $xml = implode("\n", $output);
     
     return $xml;
